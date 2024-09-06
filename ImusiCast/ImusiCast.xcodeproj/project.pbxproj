@@ -14,6 +14,7 @@
 		00EB6E0B2C8B9B1D00A63AA7 /* ImusiCastTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EB6E0A2C8B9B1D00A63AA7 /* ImusiCastTests.swift */; };
 		00EB6E152C8B9B1D00A63AA7 /* ImusiCastUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EB6E142C8B9B1D00A63AA7 /* ImusiCastUITests.swift */; };
 		00EB6E172C8B9B1D00A63AA7 /* ImusiCastUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EB6E162C8B9B1D00A63AA7 /* ImusiCastUITestsLaunchTests.swift */; };
+		00EB6E292C8BA23400A63AA7 /* PodCastResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EB6E282C8BA23400A63AA7 /* PodCastResponse.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -44,6 +45,7 @@
 		00EB6E102C8B9B1D00A63AA7 /* ImusiCastUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ImusiCastUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		00EB6E142C8B9B1D00A63AA7 /* ImusiCastUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImusiCastUITests.swift; sourceTree = "<group>"; };
 		00EB6E162C8B9B1D00A63AA7 /* ImusiCastUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImusiCastUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		00EB6E282C8BA23400A63AA7 /* PodCastResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodCastResponse.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -140,6 +142,7 @@
 		00EB6E242C8B9B5300A63AA7 /* Domain */ = {
 			isa = PBXGroup;
 			children = (
+				00EB6E282C8BA23400A63AA7 /* PodCastResponse.swift */,
 			);
 			path = Domain;
 			sourceTree = "<group>";
@@ -298,6 +301,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				00EB6DFC2C8B9B1B00A63AA7 /* ContentView.swift in Sources */,
+				00EB6E292C8BA23400A63AA7 /* PodCastResponse.swift in Sources */,
 				00EB6DFA2C8B9B1B00A63AA7 /* ImusiCastApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -461,7 +465,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"ImusiCast/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"ImusiCast/Resources/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -489,7 +493,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"ImusiCast/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"ImusiCast/Resources/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
