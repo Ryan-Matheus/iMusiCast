@@ -6,39 +6,65 @@ struct RSSSourceView: View {
     
     var body: some View {
         NavigationView {
-            VStack {
-                TextField("Enter RSS URL", text: $viewModel.url)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .padding()
-                
-                Button("Load Podcast") {
-                    viewModel.loadPodcast()
-                }
-                .padding()
-                .disabled(viewModel.url.isEmpty)
-                
-                if viewModel.isLoading {
-                    ProgressView()
-                } else if let podcast = viewModel.podcast {
-                    VStack {
-                        Text("Loaded: \(podcast.title)")
-                        Text(viewModel.cacheStatus)
-                            .font(.caption)
-                        NavigationLink(destination: PodcastDetailView(viewModel: PodcastDetailViewModel(podcast: podcast))) {
-                            Text("View Podcast Details")
-                        }
+            ScrollView {
+                VStack(spacing: 20) {
+                    TextField("Enter RSS URL", text: $viewModel.url)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .padding()
+                    
+                    Button("Load Podcast") {
+                        viewModel.loadPodcast()
                     }
-                } else if let error = viewModel.error {
-                    Text("Error: \(error.localizedDescription)")
-                        .foregroundColor(.red)
+                    .padding()
+                    .disabled(viewModel.url.isEmpty)
+                    
+                    if viewModel.isLoading {
+                        ProgressView()
+                    } else if let podcast = viewModel.podcast {
+                        VStack {
+                            Text("Loaded: \(podcast.title)")
+                            Text(viewModel.cacheStatus)
+                                .font(.caption)
+                            NavigationLink(destination: PodcastDetailView(viewModel: PodcastDetailViewModel(podcast: podcast))) {
+                                Text("View Podcast Details")
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                    } else if let error = viewModel.error {
+                        Text("Error: \(error.localizedDescription)")
+                            .foregroundColor(.red)
+                    }
+                    
+                    Button("Clear Cache") {
+                        showingClearCacheAlert = true
+                    }
+                    .padding()
+                    
+                    if !viewModel.urlHistory.isEmpty {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Recent RSS URLs")
+                                .font(.headline)
+                            ForEach(viewModel.urlHistory, id: \.self) { url in
+                                Button(action: {
+                                    viewModel.url = url
+                                    viewModel.loadPodcast()
+                                }) {
+                                    Text(url)
+                                        .foregroundColor(.blue)
+                                }
+                            }
+                        }
+                        .padding()
+                    }
                 }
-                
-                Button("Clear Cache") {
-                    showingClearCacheAlert = true
-                }
-                .padding()
             }
-            .navigationTitle("RSS Source")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("RSS Source")
+                        .font(.headline)
+                }
+            }
             .alert(isPresented: $showingClearCacheAlert) {
                 Alert(
                     title: Text("Clear Cache"),
