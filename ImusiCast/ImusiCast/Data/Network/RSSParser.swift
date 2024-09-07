@@ -24,16 +24,23 @@ class RSSParser {
         return Podcast(
             title: "Podcast Plane",
             description: "This is a podcast about planes and aviation.",
-            imageUrl: URL(string: "...")!,
+            imageUrl: URL(string: "https://i.imgur.com/pALjnIq.jpg")!,
             author: "Lito planes",
             genre: "Aviation",
             episodes: [
                 Episode(
-                    title: "Episode 1",
-                    description: "Talking about planes, today...",
-                    audioUrl: URL(string: "...")!,
-                    duration: 1800,
+                    title: "Episode 1: The Sound of Flight",
+                    description: "Experience sound of a jet engine in this episode.",
+                    audioUrl: URL(string: "https://samplelib.com/lib/preview/mp3/sample-3s.mp3")!,
+                    duration: 3,
                     publishDate: Date()
+                ),
+                Episode(
+                    title: "Episode 2: Ambient Airport",
+                    description: "busy airport sound.",
+                    audioUrl: URL(string: "https://samplelib.com/lib/preview/mp3/sample-15s.mp3")!,
+                    duration: 15,
+                    publishDate: Date().addingTimeInterval(-86400)
                 )
             ]
         )
