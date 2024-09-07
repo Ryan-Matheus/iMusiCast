@@ -21,6 +21,13 @@ struct RSSSourceView: View {
                     NavigationLink(destination: PodcastDetailView(viewModel: PodcastDetailViewModel(podcast: podcast))) {
                         Text("View Podcast Details")
                     }
+                    
+                    // Test, remove later...
+                    if let firstEpisode = podcast.episodes.first {
+                        NavigationLink(destination: PlayerView(viewModel: PlayerViewModel(episode: firstEpisode))) {
+                            Text("Test Player")
+                        }
+                    }
                 } else if let error = viewModel.error {
                     Text("Error: \(error.localizedDescription)")
                         .foregroundColor(.red)

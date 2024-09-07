@@ -28,17 +28,19 @@ struct PodcastDetailView: View {
                     .padding(.top)
                 
                 ForEach(viewModel.podcast.episodes) { episode in
-                    VStack(alignment: .leading) {
-                        Text(episode.title)
-                            .font(.headline)
-                        Text(episode.description)
-                            .font(.subheadline)
-                        Text("Duration: \(formatDuration(episode.duration))")
-                            .font(.caption)
-                        Text("Published: \(formatDate(episode.publishDate))")
-                            .font(.caption)
+                    NavigationLink(destination: PlayerView(viewModel: PlayerViewModel(episode: episode))) {
+                        VStack(alignment: .leading) {
+                            Text(episode.title)
+                                .font(.headline)
+                            Text(episode.description)
+                                .font(.subheadline)
+                            Text("Duration: \(formatDuration(episode.duration))")
+                                .font(.caption)
+                            Text("Published: \(formatDate(episode.publishDate))")
+                                .font(.caption)
+                        }
+                        .padding(.vertical, 5)
                     }
-                    .padding(.vertical, 5)
                 }
             }
             .padding()
