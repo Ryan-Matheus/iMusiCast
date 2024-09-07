@@ -18,7 +18,9 @@ struct RSSSourceView: View {
                 if viewModel.isLoading {
                     ProgressView()
                 } else if let podcast = viewModel.podcast {
-                    Text("Loaded: \(podcast.title) by \(podcast.author)")
+                    NavigationLink(destination: PodcastDetailView(viewModel: PodcastDetailViewModel(podcast: podcast))) {
+                        Text("View Podcast Details")
+                    }
                 } else if let error = viewModel.error {
                     Text("Error: \(error.localizedDescription)")
                         .foregroundColor(.red)
