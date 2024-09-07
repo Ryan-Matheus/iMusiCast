@@ -6,12 +6,19 @@ struct PodcastDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 10) {
-                AsyncImage(url: viewModel.podcast.imageUrl) { image in
-                    image.resizable().aspectRatio(contentMode: .fit)
-                } placeholder: {
+                CachedAsyncImage(url: viewModel.podcast.imageUrl) {
                     ProgressView()
                 }
                 .frame(height: 200)
+                .aspectRatio(contentMode: .fit)
+                .onAppear { viewModel.isImageLoading = true }
+                .onDisappear { viewModel.isImageLoading = false }
+                
+                if viewModel.isImageLoading {
+                    Text("Loading image...")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
                 
                 Text(viewModel.podcast.title)
                     .font(.title)
