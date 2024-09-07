@@ -4,7 +4,7 @@ import SwiftUI
 struct ImusiCastApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RSSSourceView()
         }
     }
 }
