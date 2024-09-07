@@ -2,6 +2,7 @@ import SwiftUI
 
 struct RSSSourceView: View {
     @StateObject private var viewModel = RSSSourceViewModel()
+    @State private var showingClearCacheAlert = false
     
     var body: some View {
         NavigationView {
@@ -14,6 +15,7 @@ struct RSSSourceView: View {
                     viewModel.loadPodcast()
                 }
                 .padding()
+                .disabled(viewModel.url.isEmpty)
                 
                 if viewModel.isLoading {
                     ProgressView()
@@ -32,11 +34,21 @@ struct RSSSourceView: View {
                 }
                 
                 Button("Clear Cache") {
-                    viewModel.clearCache()
+                    showingClearCacheAlert = true
                 }
                 .padding()
             }
             .navigationTitle("RSS Source")
+            .alert(isPresented: $showingClearCacheAlert) {
+                Alert(
+                    title: Text("Clear Cache"),
+                    message: Text("Are you sure you want to clear the cache?"),
+                    primaryButton: .destructive(Text("Clear")) {
+                        viewModel.clearCache()
+                    },
+                    secondaryButton: .cancel()
+                )
+            }
         }
     }
 }
