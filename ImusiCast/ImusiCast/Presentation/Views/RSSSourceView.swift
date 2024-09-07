@@ -18,20 +18,23 @@ struct RSSSourceView: View {
                 if viewModel.isLoading {
                     ProgressView()
                 } else if let podcast = viewModel.podcast {
-                    NavigationLink(destination: PodcastDetailView(viewModel: PodcastDetailViewModel(podcast: podcast))) {
-                        Text("View Podcast Details")
-                    }
-                    
-                    // Test, remove later...
-                    if let firstEpisode = podcast.episodes.first {
-                        NavigationLink(destination: PlayerView(viewModel: PlayerViewModel(episode: firstEpisode))) {
-                            Text("Test Player")
+                    VStack {
+                        Text("Loaded: \(podcast.title)")
+                        Text(viewModel.cacheStatus)
+                            .font(.caption)
+                        NavigationLink(destination: PodcastDetailView(viewModel: PodcastDetailViewModel(podcast: podcast))) {
+                            Text("View Podcast Details")
                         }
                     }
                 } else if let error = viewModel.error {
                     Text("Error: \(error.localizedDescription)")
                         .foregroundColor(.red)
                 }
+                
+                Button("Clear Cache") {
+                    viewModel.clearCache()
+                }
+                .padding()
             }
             .navigationTitle("RSS Source")
         }
