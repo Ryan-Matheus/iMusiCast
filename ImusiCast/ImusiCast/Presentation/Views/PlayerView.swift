@@ -45,6 +45,9 @@ struct PlayerView: View {
         let minutes = Int(time) / 60
         let seconds = Int(time) % 60
         return String(format: "%d:%02d", minutes, seconds)
+        .onDisappear {
+            viewModel.stopPlayback()
+        }
     }
     
     private func formatDate(_ date: Date) -> String {

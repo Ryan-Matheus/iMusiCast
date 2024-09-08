@@ -7,12 +7,16 @@ class PlayerViewModel: ObservableObject {
     @Published var currentTime: TimeInterval = 0
     
     private var player: AVPlayer?
+    private var cancellables = Set<AnyCancellable>()
     
     init(episode: Episode) {
         self.episode = episode
         setupPlayer()
     }
     
+    deinit {
+        stopPlayback()
+    }
     private func setupPlayer() {
         let playerItem = AVPlayerItem(url: episode.audioUrl)
         player = AVPlayer(playerItem: playerItem)
@@ -24,8 +28,13 @@ class PlayerViewModel: ObservableObject {
     }
     
     func pause() {
+    func stopPlayback() {
         player?.pause()
+        player?.seek(to: .zero)
+        stopTimer()
+        cancellables.removeAll()
         isPlaying = false
+        currentTime = 0
     }
     
     func seek(to time: TimeInterval) {
