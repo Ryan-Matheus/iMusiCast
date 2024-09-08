@@ -1,11 +1,18 @@
 import SwiftUI
 
 struct PlayerView: View {
-    @StateObject var viewModel: PlayerViewModel
+    @ObservedObject var viewModel: PlayerViewModel
     @Environment(\.presentationMode) var presentationMode
     
+    let episode: Episode
+    
+    init(viewModel: PlayerViewModel, episode: Episode) {
+        self.viewModel = viewModel
+        self.episode = episode
+    }
+    
     var body: some View {
-        VStack {
+        VStack(spacing: 20) {
             Text(viewModel.episode.title)
                 .font(.title2)
                 .fontWeight(.bold)
@@ -13,6 +20,10 @@ struct PlayerView: View {
                 .padding()
             
             Spacer()
+            Text(viewModel.episode.description)
+                .font(.body)
+                .multilineTextAlignment(.center)
+                .padding()
             
             if viewModel.isLoading {
                 ProgressView("Loading...")
@@ -33,6 +44,12 @@ struct PlayerView: View {
             Image(systemName: "chevron.left")
             Text("Back")
         })
+        .onAppear {
+            if viewModel.episode.id != episode.id {
+                viewModel.changeEpisode(to: episode)
+            }
+            viewModel.preparePlayback()
+        }
         .onDisappear {
             viewModel.stopPlayback()
         }
