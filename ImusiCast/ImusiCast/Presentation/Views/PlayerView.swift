@@ -1,50 +1,76 @@
 import SwiftUI
 
 struct PlayerView: View {
-    @ObservedObject var viewModel: PlayerViewModel
+    @StateObject var viewModel: PlayerViewModel
+    @Environment(\.presentationMode) var presentationMode
     
     var body: some View {
         VStack {
             Text(viewModel.episode.title)
-                .font(.title)
-            
-            Text(viewModel.episode.description)
-                .font(.subheadline)
+                .font(.title2)
+                .fontWeight(.bold)
+                .multilineTextAlignment(.center)
                 .padding()
             
-            Text("Published: \(formatDate(viewModel.episode.publishDate))")
-                .font(.caption)
+            Spacer()
             
-            Slider(value: $viewModel.currentTime, in: 0...viewModel.episode.duration) { _ in
-                viewModel.seek(to: viewModel.currentTime)
-            }
-            
-            HStack {
-                Text(formatTime(viewModel.currentTime))
-                Spacer()
-                Text(formatTime(viewModel.episode.duration))
-            }
-            
-            Button(action: {
-                if viewModel.isPlaying {
-                    viewModel.pause()
-                } else {
-                    viewModel.play()
+            if viewModel.isLoading {
+                ProgressView("Loading...")
+            } else if let error = viewModel.error {
+                Text("Error: \(error)")
+                    .foregroundColor(.red)
+            } else {
+                VStack(spacing: 20) {
+                    HStack {
+                        Text(formatTime(viewModel.currentTime))
+                        Spacer()
+                        Text(formatTime(viewModel.duration))
+                    }
+                    .font(.caption)
+                    
+                    if viewModel.duration > 0 {
+                        Slider(
+                            value: Binding(
+                                get: { min(viewModel.currentTime, viewModel.duration) },
+                                set: { viewModel.seek(to: $0) }
+                            ),
+                            in: 0...viewModel.duration
+                        )
+                        .accentColor(.blue)
+                    } else {
+                        ProgressView()
+                    }
+                    
+                    HStack(spacing: 40) {
+                        Button(action: viewModel.previousEpisode) {
+                            Image(systemName: "backward.fill")
+                                .font(.title)
+                        }
+                        
+                        Button(action: viewModel.togglePlayPause) {
+                            Image(systemName: viewModel.isPlaying ? "pause.circle.fill" : "play.circle.fill")
+                                .font(.system(size: 50))
+                        }
+                        
+                        Button(action: viewModel.nextEpisode) {
+                            Image(systemName: "forward.fill")
+                                .font(.title)
+                        }
+                    }
+                    .foregroundColor(.blue)
                 }
-            }) {
-                Image(systemName: viewModel.isPlaying ? "pause.circle" : "play.circle")
-                    .resizable()
-                    .frame(width: 50, height: 50)
+                .padding()
             }
         }
-        .padding()
-        .navigationTitle("Now Playing")
-    }
-    
-    private func formatTime(_ time: TimeInterval) -> String {
-        let minutes = Int(time) / 60
-        let seconds = Int(time) % 60
-        return String(format: "%d:%02d", minutes, seconds)
+        .navigationBarTitle("Now Playing", displayMode: .inline)
+        .navigationBarBackButtonHidden(true)
+        .navigationBarItems(leading: Button(action: {
+            viewModel.stopPlayback()
+            presentationMode.wrappedValue.dismiss()
+        }) {
+            Image(systemName: "chevron.left")
+            Text("Back")
+        })
         .onDisappear {
             viewModel.stopPlayback()
         }
