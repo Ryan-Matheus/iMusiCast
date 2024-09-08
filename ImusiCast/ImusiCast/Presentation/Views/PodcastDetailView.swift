@@ -5,7 +5,7 @@ struct PodcastDetailView: View {
     
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 16) {
                 CachedAsyncImage(url: viewModel.podcast.imageUrl) {
                     ProgressView()
                 }
