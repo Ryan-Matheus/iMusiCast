@@ -20,48 +20,10 @@ struct PlayerView: View {
                 Text("Error: \(error)")
                     .foregroundColor(.red)
             } else {
-                VStack(spacing: 20) {
-                    HStack {
-                        Text(formatTime(viewModel.currentTime))
-                        Spacer()
-                        Text(formatTime(viewModel.duration))
-                    }
-                    .font(.caption)
-                    
-                    if viewModel.duration > 0 {
-                        Slider(
-                            value: Binding(
-                                get: { min(viewModel.currentTime, viewModel.duration) },
-                                set: { viewModel.seek(to: $0) }
-                            ),
-                            in: 0...viewModel.duration
-                        )
-                        .accentColor(.blue)
-                    } else {
-                        ProgressView()
-                    }
-                    
-                    HStack(spacing: 40) {
-                        Button(action: viewModel.previousEpisode) {
-                            Image(systemName: "backward.fill")
-                                .font(.title)
-                        }
-                        
-                        Button(action: viewModel.togglePlayPause) {
-                            Image(systemName: viewModel.isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                                .font(.system(size: 50))
-                        }
-                        
-                        Button(action: viewModel.nextEpisode) {
-                            Image(systemName: "forward.fill")
-                                .font(.title)
-                        }
-                    }
-                    .foregroundColor(.blue)
-                }
-                .padding()
+                playerControls
             }
         }
+        .padding()
         .navigationBarTitle("Now Playing", displayMode: .inline)
         .navigationBarBackButtonHidden(true)
         .navigationBarItems(leading: Button(action: {
@@ -73,6 +35,42 @@ struct PlayerView: View {
         })
         .onDisappear {
             viewModel.stopPlayback()
+        }
+    }
+    
+    private var playerControls: some View {
+        VStack(spacing: 20) {
+            Slider(value: $viewModel.currentTime, in: 0...max(viewModel.duration, 0.01)) { editing in
+                if !editing {
+                    viewModel.seek(to: viewModel.currentTime)
+                }
+            }
+            .accentColor(.blue)
+            
+            HStack {
+                Text(formatTime(viewModel.currentTime))
+                Spacer()
+                Text(formatTime(viewModel.duration))
+            }
+            .font(.caption)
+            
+            HStack(spacing: 40) {
+                Button(action: viewModel.previousEpisode) {
+                    Image(systemName: "backward.fill")
+                        .font(.title)
+                }
+                
+                Button(action: viewModel.togglePlayPause) {
+                    Image(systemName: viewModel.isPlaying ? "pause.circle.fill" : "play.circle.fill")
+                        .font(.system(size: 50))
+                }
+                
+                Button(action: viewModel.nextEpisode) {
+                    Image(systemName: "forward.fill")
+                        .font(.title)
+                }
+            }
+            .foregroundColor(.blue)
         }
     }
     
