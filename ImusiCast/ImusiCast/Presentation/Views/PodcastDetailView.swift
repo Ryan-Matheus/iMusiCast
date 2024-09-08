@@ -2,6 +2,12 @@ import SwiftUI
 
 struct PodcastDetailView: View {
     @ObservedObject var viewModel: PodcastDetailViewModel
+    @StateObject private var playerViewModel: PlayerViewModel
+    
+    init(viewModel: PodcastDetailViewModel) {
+        self.viewModel = viewModel
+        _playerViewModel = StateObject(wrappedValue: PlayerViewModel(episode: viewModel.podcast.episodes[0], episodes: viewModel.podcast.episodes))
+    }
     
     var body: some View {
         ScrollView {
@@ -40,7 +46,7 @@ struct PodcastDetailView: View {
                     .fontWeight(.bold)
                 
                 ForEach(viewModel.podcast.episodes) { episode in
-                    NavigationLink(destination: PlayerView(viewModel: PlayerViewModel(episode: episode, episodes: viewModel.podcast.episodes))) {
+                    NavigationLink(destination: PlayerView(viewModel: playerViewModel, episode: episode)) {
                         EpisodeRow(episode: episode)
                     }
                 }
