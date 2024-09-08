@@ -6,11 +6,11 @@ class PlayerViewModel: ObservableObject {
     @Published var episode: Episode
     @Published var isPlaying = false
     @Published var currentTime: Double = 0
-    @Published var duration: Double = 0
-    @Published var isLoading = true
+    @Published var duration: Double = 0.01
+    @Published var isLoading = false
     @Published var error: String?
     
-    private var player: AVPlayer?
+    private var player: AVAudioPlayer?
     private var timer: Timer?
     private var cancellables = Set<AnyCancellable>()
     
@@ -21,57 +21,36 @@ class PlayerViewModel: ObservableObject {
         self.episode = episode
         self.episodes = episodes
         self.currentEpisodeIndex = episodes.firstIndex(where: { $0.id == episode.id }) ?? 0
-        setupPlayer()
     }
     
     deinit {
         stopPlayback()
     }
     
+    func changeEpisode(to newEpisode: Episode) {
+        stopPlayback()
+        episode = newEpisode
+        currentEpisodeIndex = episodes.firstIndex(where: { $0.id == newEpisode.id }) ?? 0
+    }
+    
+    func preparePlayback() {
+        guard player == nil else { return }
+        isLoading = true
+        error = nil
+        setupPlayer()
+    }
+    
     private func setupPlayer() {
-        player = AVPlayer(url: episode.audioUrl)
-        
-        player?.currentItem?.asset.loadValuesAsynchronously(forKeys: ["duration"]) { [weak self] in
-            DispatchQueue.main.async {
-                if let duration = self?.player?.currentItem?.asset.duration {
-                    self?.duration = CMTimeGetSeconds(duration)
-                }
-                self?.isLoading = false
-            }
-        }
-        
-        NotificationCenter.default.publisher(for: .AVPlayerItemDidPlayToEndTime, object: player?.currentItem)
-            .sink { [weak self] _ in
-                self?.playerDidFinishPlaying()
-            }
-            .store(in: &cancellables)
-    }
-    
-    func togglePlayPause() {
-        if isPlaying {
-            player?.pause()
-            stopTimer()
-        } else {
-            if currentTime >= duration {
-                seek(to: 0)
-            }
-            player?.play()
+        do {
+            let data = try Data(contentsOf: episode.audioUrl)
+            player = try AVAudioPlayer(data: data)
+            player?.prepareToPlay()
+            duration = player?.duration ?? 0.01
+            isLoading = false
             startTimer()
-        }
-        isPlaying.toggle()
-    }
-    
-    func seek(to time: Double) {
-        player?.seek(to: CMTime(seconds: time, preferredTimescale: 1))
-        currentTime = time
-    }
-    
-    private func playerDidFinishPlaying() {
-        DispatchQueue.main.async {
-            self.isPlaying = false
-            self.currentTime = self.duration
-            self.stopTimer()
-            self.nextEpisode()
+        } catch {
+            self.error = error.localizedDescription
+            isLoading = false
         }
     }
     
@@ -79,20 +58,28 @@ class PlayerViewModel: ObservableObject {
         timer?.invalidate()
         timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
             guard let self = self, let player = self.player else { return }
-            self.currentTime = CMTimeGetSeconds(player.currentTime())
+            self.currentTime = player.currentTime
         }
     }
     
-    private func stopTimer() {
-        timer?.invalidate()
-        timer = nil
+    func togglePlayPause() {
+        if isPlaying {
+            player?.pause()
+        } else {
+            player?.play()
+        }
+        isPlaying.toggle()
+    }
+    
+    func seek(to time: Double) {
+        player?.currentTime = time
     }
     
     func stopPlayback() {
-        player?.pause()
-        player?.seek(to: .zero)
-        stopTimer()
-        cancellables.removeAll()
+        player?.stop()
+        timer?.invalidate()
+        timer = nil
+        player = nil
         isPlaying = false
         currentTime = 0
     }
@@ -105,14 +92,5 @@ class PlayerViewModel: ObservableObject {
     func previousEpisode() {
         currentEpisodeIndex = (currentEpisodeIndex - 1 + episodes.count) % episodes.count
         changeEpisode(to: episodes[currentEpisodeIndex])
-    }
-    
-    private func changeEpisode(to newEpisode: Episode) {
-        stopPlayback()
-        episode = newEpisode
-        setupPlayer()
-        togglePlayPause()
-    }
-    
     }
 }
