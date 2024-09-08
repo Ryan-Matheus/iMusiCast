@@ -6,13 +6,17 @@ class RSSSourceViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var error: Error?
     @Published var cacheStatus: String = ""
+    @Published var urlHistory: [String] = []
     
     private let rssParser: RSSParser
     private let cacheManager: CacheManager
+    private let historyManager: RSSURLHistoryManager
     
-    init(rssParser: RSSParser = RSSParser(), cacheManager: CacheManager = .shared) {
+    init(rssParser: RSSParser = RSSParser(), cacheManager: CacheManager = .shared, historyManager: RSSURLHistoryManager = RSSURLHistoryManager()) {
         self.rssParser = rssParser
         self.cacheManager = cacheManager
+        self.historyManager = historyManager
+        loadURLHistory()
     }
     
     func loadPodcast() {
@@ -36,6 +40,8 @@ class RSSSourceViewModel: ObservableObject {
                     self.podcast = podcast
                     self.isLoading = false
                     self.cacheStatus = "Load time: \(String(format: "%.2f", loadTime)) seconds"
+                    self.historyManager.saveURL(self.url)
+                    self.loadURLHistory()
                 }
             } catch {
                 DispatchQueue.main.async {
@@ -49,5 +55,9 @@ class RSSSourceViewModel: ObservableObject {
     func clearCache() {
         cacheManager.clearCache()
         cacheStatus = "Cache cleared"
+    }
+    
+    private func loadURLHistory() {
+        urlHistory = historyManager.getHistory().urls
     }
 }
