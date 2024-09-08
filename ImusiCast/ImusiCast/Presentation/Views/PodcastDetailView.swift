@@ -22,44 +22,56 @@ struct PodcastDetailView: View {
                 
                 Text(viewModel.podcast.title)
                     .font(.title)
-                Text(viewModel.podcast.author)
+                    .fontWeight(.bold)
+                
+                Text("Author: \(viewModel.podcast.author)")
                     .font(.subheadline)
+                
                 Text("Genre: \(viewModel.podcast.genre)")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
+                
                 Text(viewModel.podcast.description)
-                    .padding(.top)
+                    .font(.body)
+                    .padding(.vertical)
                 
                 Text("Episodes")
                     .font(.title2)
-                    .padding(.top)
+                    .fontWeight(.bold)
                 
                 ForEach(viewModel.podcast.episodes) { episode in
                     NavigationLink(destination: PlayerView(viewModel: PlayerViewModel(episode: episode))) {
-                        VStack(alignment: .leading) {
-                            Text(episode.title)
-                                .font(.headline)
-                            Text(episode.description)
-                                .font(.subheadline)
-                            Text("Duration: \(formatDuration(episode.duration))")
-                                .font(.caption)
-                            Text("Published: \(formatDate(episode.publishDate))")
-                                .font(.caption)
-                        }
-                        .padding(.vertical, 5)
+                        EpisodeRow(episode: episode)
                     }
                 }
             }
             .padding()
         }
-        .navigationTitle("Podcast Details")
+        .navigationBarTitle("Podcast Details", displayMode: .inline)
     }
+}
+
+struct EpisodeRow: View {
+    let episode: Episode
     
-    private func formatDuration(_ duration: TimeInterval) -> String {
-        let formatter = DateComponentsFormatter()
-        formatter.allowedUnits = [.hour, .minute, .second]
-        formatter.unitsStyle = .abbreviated
-        return formatter.string(from: duration) ?? ""
+    var body: some View {
+        VStack(alignment: .leading) {
+            Text(episode.title)
+                .font(.headline)
+            
+            Text(episode.description)
+                .font(.subheadline)
+                .lineLimit(2)
+            
+            HStack {
+                Text("Published: \(formatDate(episode.publishDate))")
+                Spacer()
+                Text("Duration: \(formatDuration(episode.duration))")
+            }
+            .font(.caption)
+            .foregroundColor(.secondary)
+        }
+        .padding(.vertical, 8)
     }
     
     private func formatDate(_ date: Date) -> String {
