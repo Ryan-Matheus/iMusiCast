@@ -40,7 +40,7 @@ struct PodcastDetailView: View {
                     .fontWeight(.bold)
                 
                 ForEach(viewModel.podcast.episodes) { episode in
-                    NavigationLink(destination: PlayerView(viewModel: PlayerViewModel(episode: episode))) {
+                    NavigationLink(destination: PlayerView(viewModel: PlayerViewModel(episode: episode, episodes: viewModel.podcast.episodes))) {
                         EpisodeRow(episode: episode)
                     }
                 }

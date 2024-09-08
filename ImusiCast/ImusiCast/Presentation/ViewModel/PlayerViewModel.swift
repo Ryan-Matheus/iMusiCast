@@ -14,8 +14,13 @@ class PlayerViewModel: ObservableObject {
     private var timer: Timer?
     private var cancellables = Set<AnyCancellable>()
     
-    init(episode: Episode) {
+    var episodes: [Episode]
+    var currentEpisodeIndex: Int
+    
+    init(episode: Episode, episodes: [Episode]) {
         self.episode = episode
+        self.episodes = episodes
+        self.currentEpisodeIndex = episodes.firstIndex(where: { $0.id == episode.id }) ?? 0
         setupPlayer()
     }
     
@@ -66,6 +71,7 @@ class PlayerViewModel: ObservableObject {
             self.isPlaying = false
             self.currentTime = self.duration
             self.stopTimer()
+            self.nextEpisode()
         }
     }
     
@@ -82,7 +88,6 @@ class PlayerViewModel: ObservableObject {
         timer = nil
     }
     
-    func pause() {
     func stopPlayback() {
         player?.pause()
         player?.seek(to: .zero)
@@ -93,10 +98,21 @@ class PlayerViewModel: ObservableObject {
     }
     
     func nextEpisode() {
-        //TODO: Implement next episode logic
+        currentEpisodeIndex = (currentEpisodeIndex + 1) % episodes.count
+        changeEpisode(to: episodes[currentEpisodeIndex])
     }
     
     func previousEpisode() {
-        //TODO: Implement previous episode logic
+        currentEpisodeIndex = (currentEpisodeIndex - 1 + episodes.count) % episodes.count
+        changeEpisode(to: episodes[currentEpisodeIndex])
+    }
+    
+    private func changeEpisode(to newEpisode: Episode) {
+        stopPlayback()
+        episode = newEpisode
+        setupPlayer()
+        togglePlayPause()
+    }
+    
     }
 }
