@@ -80,4 +80,11 @@ struct EpisodeRow: View {
         formatter.timeStyle = .none
         return formatter.string(from: date)
     }
+    
+    private func formatDuration(_ duration: TimeInterval) -> String {
+        let formatter = DateComponentsFormatter()
+        formatter.allowedUnits = [.hour, .minute, .second]
+        formatter.unitsStyle = .abbreviated
+        return formatter.string(from: duration) ?? ""
+    }
 }
