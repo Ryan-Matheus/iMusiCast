@@ -19,5 +19,18 @@ class RSSParser {
     }
     
     private func parseRSSData(_ data: Data) throws -> Podcast {
+        let parser = XMLParser(data: data)
+        let parserDelegate = RSSParserDelegate()
+        parser.delegate = parserDelegate
+        
+        if parser.parse() {
+            if let podcast = parserDelegate.podcast {
+                return podcast
+            } else {
+                throw NSError(domain: "RSSParserError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to create podcast object"])
+            }
+        } else {
+            throw NSError(domain: "RSSParserError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to parse RSS feed"])
+        }
     }
 }
