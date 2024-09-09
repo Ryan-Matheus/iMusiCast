@@ -103,6 +103,10 @@ struct EpisodeRow: View {
             .foregroundColor(.secondary)
         }
         .padding(.vertical, 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.systemBackground))
+        .cornerRadius(8)
+        .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
     }
     
     private func formatDate(_ date: Date) -> String {
