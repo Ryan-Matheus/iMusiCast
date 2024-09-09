@@ -82,18 +82,22 @@ struct EpisodeRow: View {
     let episode: Episode
     
     var body: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 8) {
             Text(episode.title)
                 .font(.headline)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
             
             Text(episode.description)
                 .font(.subheadline)
-                .lineLimit(2)
+                .foregroundColor(.secondary)
+                .lineLimit(3)
+                .fixedSize(horizontal: false, vertical: true)
             
             HStack {
-                Text("Published: \(formatDate(episode.publishDate))")
+                Text(formatDate(episode.publishDate))
                 Spacer()
-                Text("Duration: \(formatDuration(episode.duration))")
+                Text(formatDuration(episode.duration))
             }
             .font(.caption)
             .foregroundColor(.secondary)
@@ -110,7 +114,7 @@ struct EpisodeRow: View {
     
     private func formatDuration(_ duration: TimeInterval) -> String {
         let formatter = DateComponentsFormatter()
-        formatter.allowedUnits = [.hour, .minute, .second]
+        formatter.allowedUnits = [.hour, .minute]
         formatter.unitsStyle = .abbreviated
         return formatter.string(from: duration) ?? "Unknown"
     }
