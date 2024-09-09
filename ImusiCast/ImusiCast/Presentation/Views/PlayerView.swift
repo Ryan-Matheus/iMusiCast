@@ -19,11 +19,12 @@ struct PlayerView: View {
                 .multilineTextAlignment(.center)
                 .padding()
             
-            Spacer()
-            Text(viewModel.episode.description)
-                .font(.body)
-                .multilineTextAlignment(.center)
-                .padding()
+            ScrollView {
+                Text(viewModel.episode.description)
+                    .font(.body)
+                    .multilineTextAlignment(.center)
+                    .padding()
+            }
             
             if viewModel.isLoading {
                 ProgressView("Loading...")
