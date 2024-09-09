@@ -31,10 +31,11 @@ class PlayerViewModel: ObservableObject {
         stopPlayback()
         episode = newEpisode
         currentEpisodeIndex = episodes.firstIndex(where: { $0.id == newEpisode.id }) ?? 0
+        preparePlayback()
     }
     
     func preparePlayback() {
-        guard player == nil else { return }
+        stopPlayback()
         isLoading = true
         error = nil
         setupPlayer()
@@ -59,6 +60,7 @@ class PlayerViewModel: ObservableObject {
                     self?.duration = self?.player?.duration ?? 0.01
                     self?.isLoading = false
                     self?.startTimer()
+                    self?.play()
                 } catch {
                     self?.error = error.localizedDescription
                     self?.isLoading = false
@@ -77,11 +79,20 @@ class PlayerViewModel: ObservableObject {
     
     func togglePlayPause() {
         if isPlaying {
-            player?.pause()
+            pause()
         } else {
-            player?.play()
+            play()
         }
-        isPlaying.toggle()
+    }
+    
+    func play() {
+        player?.play()
+        isPlaying = true
+    }
+    
+    func pause() {
+        player?.pause()
+        isPlaying = false
     }
     
     func seek(to time: Double) {
