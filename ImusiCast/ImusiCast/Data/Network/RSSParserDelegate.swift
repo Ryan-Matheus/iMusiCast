@@ -37,18 +37,24 @@ class RSSParserDelegate: NSObject, XMLParserDelegate {
         currentCharacters = ""
         
         if elementName == "item" {
-            currentEpisode = nil
+            currentEpisode = Episode(id: UUID(),
+                                     title: "",
+                                     description: "",
+                                     audioUrl: URL(string: "...")!,
+                                     duration: 0,
+                                     publishDate: Date())
         }
         
         if elementName == "enclosure",
            let url = attributeDict["url"],
            let audioUrl = URL(string: url) {
-            currentEpisode = Episode(id: UUID(),
-                                     title: "",
-                                     description: "",
-                                     audioUrl: audioUrl,
-                                     duration: 0,
-                                     publishDate: Date())
+            currentEpisode = currentEpisode.map { Episode(id: $0.id,
+                                                          title: $0.title,
+                                                          description: $0.description,
+                                                          audioUrl: audioUrl,
+                                                          duration: $0.duration,
+                                                          publishDate: $0.publishDate)
+            }
         }
         
         if elementName == "itunes:image", let href = attributeDict["href"], let url = URL(string: href) {
@@ -64,56 +70,69 @@ class RSSParserDelegate: NSObject, XMLParserDelegate {
             }
             currentEpisode = nil
         case "title":
-            if currentEpisode == nil {
-                podcastTitle = currentCharacters.xmlEscaped
+            if let episode = currentEpisode {
+                currentEpisode = Episode(id: episode.id,
+                                         title: currentCharacters.trimmingCharacters(in: .whitespacesAndNewlines),
+                                         description: episode.description,
+                                         audioUrl: episode.audioUrl,
+                                         duration: episode.duration,
+                                         publishDate: episode.publishDate)
             } else {
-                currentEpisode = currentEpisode.map { Episode(id: $0.id,
-                                                              title: currentCharacters.xmlEscaped,
-                                                              description: $0.description,
-                                                              audioUrl: $0.audioUrl,
-                                                              duration: $0.duration,
-                                                              publishDate: $0.publishDate) }
+                podcastTitle = currentCharacters.trimmingCharacters(in: .whitespacesAndNewlines)
             }
         case "description":
-            if currentEpisode == nil {
-                podcastDescription = currentCharacters.xmlEscaped
+            if let episode = currentEpisode {
+                currentEpisode = Episode(id: episode.id,
+                                         title: episode.title,
+                                         description: currentCharacters.trimmingCharacters(in: .whitespacesAndNewlines),
+                                         audioUrl: episode.audioUrl,
+                                         duration: episode.duration,
+                                         publishDate: episode.publishDate)
             } else {
-                currentEpisode = currentEpisode.map { Episode(id: $0.id,
-                                                              title: $0.title,
-                                                              description: currentCharacters.xmlEscaped,
-                                                              audioUrl: $0.audioUrl,
-                                                              duration: $0.duration,
-                                                              publishDate: $0.publishDate) }
+                podcastDescription = currentCharacters.trimmingCharacters(in: .whitespacesAndNewlines)
             }
         case "itunes:image":
             if podcastImageUrl == nil, let url = URL(string: currentCharacters) {
                 podcastImageUrl = url
             }
         case "itunes:author":
-            podcastAuthor = currentCharacters.xmlEscaped
+            podcastAuthor = currentCharacters.trimmingCharacters(in: .whitespacesAndNewlines)
+        case "itunes:category":
+            podcastGenre = currentCharacters.trimmingCharacters(in: .whitespacesAndNewlines)
         case "itunes:duration":
             let durationString = currentCharacters.trimmingCharacters(in: .whitespacesAndNewlines)
-            let duration = parseDuration(durationString)
-            currentEpisode = currentEpisode.map { Episode(id: $0.id,
-                                                          title: $0.title,
-                                                          description: $0.description,
-                                                          audioUrl: $0.audioUrl,
-                                                          duration: duration,
-                                                          publishDate: $0.publishDate) }
-        case "pubDate":
-            if let date = DateFormatter.rfc2822.date(from: currentCharacters.trimmingCharacters(in: .whitespacesAndNewlines)) {
+            if let duration = TimeInterval(durationString) {
                 currentEpisode = currentEpisode.map { Episode(id: $0.id,
                                                               title: $0.title,
                                                               description: $0.description,
                                                               audioUrl: $0.audioUrl,
-                                                              duration: $0.duration,
-                                                              publishDate: date) }
+                                                              duration: duration,
+                                                              publishDate: $0.publishDate)
+                }
+            } else if let duration = parseDurationString(durationString) {
+                currentEpisode = currentEpisode.map { Episode(id: $0.id,
+                                                              title: $0.title,
+                                                              description: $0.description,
+                                                              audioUrl: $0.audioUrl,
+                                                              duration: duration,
+                                                              publishDate: $0.publishDate)
+                }
+            }
+        case "pubDate":
+            if let date = DateFormatter.rfc2822.date(from: currentCharacters.trimmingCharacters(in: .whitespacesAndNewlines)),
+               let episode = currentEpisode {
+                currentEpisode = Episode(id: episode.id,
+                                         title: episode.title,
+                                         description: episode.description,
+                                         audioUrl: episode.audioUrl,
+                                         duration: episode.duration,
+                                         publishDate: date)
             }
         case "channel":
             podcast = Podcast(id: UUID(),
                               title: podcastTitle,
                               description: podcastDescription,
-                              imageUrl: podcastImageUrl ?? URL(string: "none")!,
+                              imageUrl: podcastImageUrl ?? URL(string: "...")!,
                               author: podcastAuthor,
                               genre: podcastGenre,
                               episodes: episodes)
@@ -128,22 +147,20 @@ class RSSParserDelegate: NSObject, XMLParserDelegate {
         currentCharacters += string
     }
     
-    private func parseDuration(_ durationString: String) -> TimeInterval {
+    private func parseDurationString(_ durationString: String) -> TimeInterval? {
         let components = durationString.components(separatedBy: ":")
         switch components.count {
-        case 1:
-            return TimeInterval(durationString) ?? 0
-        case 2:
-            let minutes = TimeInterval(components[0]) ?? 0
-            let seconds = TimeInterval(components[1]) ?? 0
-            return minutes * 60 + seconds
         case 3:
-            let hours = TimeInterval(components[0]) ?? 0
-            let minutes = TimeInterval(components[1]) ?? 0
-            let seconds = TimeInterval(components[2]) ?? 0
+            guard let hours = Double(components[0]),
+                  let minutes = Double(components[1]),
+                  let seconds = Double(components[2]) else { return nil }
             return hours * 3600 + minutes * 60 + seconds
+        case 2:
+            guard let minutes = Double(components[0]),
+                  let seconds = Double(components[1]) else { return nil }
+            return minutes * 60 + seconds
         default:
-            return 0
+            return nil
         }
     }
 }
