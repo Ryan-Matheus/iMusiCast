@@ -29,9 +29,11 @@ struct PodcastDetailView: View {
                 Text("Author: \(viewModel.podcast.author)")
                     .font(.subheadline)
                 
-                Text("Genre: \(viewModel.podcast.genre)")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                if !viewModel.podcast.genre.isEmpty {
+                    Text("Genre: \(viewModel.podcast.genre)")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
                 
                 Text("Episodes")
                     .font(.title2)
