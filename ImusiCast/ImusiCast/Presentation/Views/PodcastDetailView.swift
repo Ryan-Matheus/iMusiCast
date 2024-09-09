@@ -3,6 +3,8 @@ import SwiftUI
 struct PodcastDetailView: View {
     @ObservedObject var viewModel: PodcastDetailViewModel
     @StateObject private var playerViewModel: PlayerViewModel
+    @State private var currentPage = 0
+    let episodesPerPage = 5
     
     init(viewModel: PodcastDetailViewModel) {
         self.viewModel = viewModel
@@ -38,16 +40,41 @@ struct PodcastDetailView: View {
                 Text("Episodes")
                     .font(.title2)
                     .fontWeight(.bold)
+                    .padding(.top)
                 
-                ForEach(viewModel.podcast.episodes) { episode in
+                ForEach(paginatedEpisodes) { episode in
                     NavigationLink(destination: PlayerView(viewModel: playerViewModel, episode: episode)) {
                         EpisodeRow(episode: episode)
                     }
                 }
+                
+                HStack {
+                    if currentPage > 0 {
+                        Button("Previous") {
+                            currentPage -= 1
+                        }
+                    }
+                    Spacer()
+                    Text("Showing episodes \(currentPage * episodesPerPage + 1) to \(min((currentPage + 1) * episodesPerPage, viewModel.podcast.episodes.count))")
+                        .font(.caption)
+                    Spacer()
+                    if (currentPage + 1) * episodesPerPage < viewModel.podcast.episodes.count {
+                        Button("Next") {
+                            currentPage += 1
+                        }
+                    }
+                }
+                .padding(.top)
             }
             .padding()
         }
         .navigationBarTitle("Podcast Details", displayMode: .inline)
+    }
+    
+    private var paginatedEpisodes: [Episode] {
+        let startIndex = currentPage * episodesPerPage
+        let endIndex = min(startIndex + episodesPerPage, viewModel.podcast.episodes.count)
+        return Array(viewModel.podcast.episodes[startIndex..<endIndex])
     }
 }
 
