@@ -6,7 +6,7 @@ struct PodcastDetailView: View {
     
     init(viewModel: PodcastDetailViewModel) {
         self.viewModel = viewModel
-        _playerViewModel = StateObject(wrappedValue: PlayerViewModel(episode: viewModel.podcast.episodes[0], episodes: viewModel.podcast.episodes))
+        _playerViewModel = StateObject(wrappedValue: PlayerViewModel(episode: viewModel.podcast.episodes.first ?? Episode(id: UUID(), title: "", description: "", audioUrl: URL(string: "...")!, duration: 0, publishDate: Date()), episodes: viewModel.podcast.episodes))
     }
     
     var body: some View {
@@ -91,6 +91,6 @@ struct EpisodeRow: View {
         let formatter = DateComponentsFormatter()
         formatter.allowedUnits = [.hour, .minute, .second]
         formatter.unitsStyle = .abbreviated
-        return formatter.string(from: duration) ?? ""
+        return formatter.string(from: duration) ?? "Unknown"
     }
 }
