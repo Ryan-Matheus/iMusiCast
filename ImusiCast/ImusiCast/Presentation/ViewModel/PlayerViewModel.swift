@@ -41,17 +41,30 @@ class PlayerViewModel: ObservableObject {
     }
     
     private func setupPlayer() {
-        do {
-            let data = try Data(contentsOf: episode.audioUrl)
-            player = try AVAudioPlayer(data: data)
-            player?.prepareToPlay()
-            duration = player?.duration ?? 0.01
-            isLoading = false
-            startTimer()
-        } catch {
-            self.error = error.localizedDescription
-            isLoading = false
-        }
+        URLSession.shared.dataTaskPublisher(for: episode.audioUrl)
+            .map { $0.data }
+            .receive(on: DispatchQueue.main)
+            .sink(receiveCompletion: { [weak self] completion in
+                switch completion {
+                case .finished:
+                    break
+                case .failure(let error):
+                    self?.error = error.localizedDescription
+                    self?.isLoading = false
+                }
+            }, receiveValue: { [weak self] data in
+                do {
+                    self?.player = try AVAudioPlayer(data: data)
+                    self?.player?.prepareToPlay()
+                    self?.duration = self?.player?.duration ?? 0.01
+                    self?.isLoading = false
+                    self?.startTimer()
+                } catch {
+                    self?.error = error.localizedDescription
+                    self?.isLoading = false
+                }
+            })
+            .store(in: &cancellables)
     }
     
     private func startTimer() {
