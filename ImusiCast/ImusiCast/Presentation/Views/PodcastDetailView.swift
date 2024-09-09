@@ -12,23 +12,19 @@ struct PodcastDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
+                Text(viewModel.podcast.title)
+                    .font(.title)
+                    .fontWeight(.bold)
+                
                 CachedAsyncImage(url: viewModel.podcast.imageUrl) {
                     ProgressView()
                 }
                 .frame(height: 200)
                 .aspectRatio(contentMode: .fit)
-                .onAppear { viewModel.isImageLoading = true }
-                .onDisappear { viewModel.isImageLoading = false }
                 
-                if viewModel.isImageLoading {
-                    Text("Loading image...")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                
-                Text(viewModel.podcast.title)
-                    .font(.title)
-                    .fontWeight(.bold)
+                Text(viewModel.podcast.description)
+                    .font(.body)
+                    .padding(.vertical)
                 
                 Text("Author: \(viewModel.podcast.author)")
                     .font(.subheadline)
@@ -36,10 +32,6 @@ struct PodcastDetailView: View {
                 Text("Genre: \(viewModel.podcast.genre)")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
-                
-                Text(viewModel.podcast.description)
-                    .font(.body)
-                    .padding(.vertical)
                 
                 Text("Episodes")
                     .font(.title2)
