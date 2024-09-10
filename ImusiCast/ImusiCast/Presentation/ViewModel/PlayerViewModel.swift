@@ -18,10 +18,13 @@ class PlayerViewModel: ObservableObject {
     var episodes: [Episode]
     var currentEpisodeIndex: Int
     
-    init(episode: Episode, episodes: [Episode]) {
+    private let cacheManager: CacheManager
+    
+    init(episode: Episode, episodes: [Episode], cacheManager: CacheManager = .shared) {
         self.episode = episode
         self.episodes = episodes
         self.currentEpisodeIndex = episodes.firstIndex(where: { $0.id == episode.id }) ?? 0
+        self.cacheManager = cacheManager
     }
     
     deinit {
@@ -36,10 +39,34 @@ class PlayerViewModel: ObservableObject {
     }
     
     func preparePlayback(autoPlay: Bool = false) {
-        stopPlayback()
-        isLoading = true
-        error = nil
-        setupPlayer(autoPlay: autoPlay)
+           stopPlayback()
+           isLoading = true
+           error = nil
+           
+           let cacheKey = episode.audioUrl.absoluteString
+           if let cachedData = cacheManager.getCachedAudioData(forKey: cacheKey) {
+               print("222Audio loaded from cache: \(cacheKey)")
+               setupPlayerWithCachedData(cachedData, autoPlay: autoPlay)
+           } else {
+               print("222Downloading audio: \(cacheKey)")
+               setupPlayer(autoPlay: autoPlay)
+           }
+       }
+    
+    private func setupPlayerWithCachedData(_ data: Data, autoPlay: Bool) {
+        do {
+            let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+            try data.write(to: tempURL)
+            
+            let asset = AVAsset(url: tempURL)
+            playerItem = AVPlayerItem(asset: asset)
+            player = AVPlayer(playerItem: playerItem)
+            
+            setupPlayerObservers(autoPlay: autoPlay)
+        } catch {
+            self.error = "222Failed to load cached audio: \(error.localizedDescription)"
+            isLoading = false
+        }
     }
     
     private func setupPlayer(autoPlay: Bool) {
@@ -53,6 +80,19 @@ class PlayerViewModel: ObservableObject {
         playerItem = AVPlayerItem(asset: asset)
         player = AVPlayer(playerItem: playerItem)
         
+        setupPlayerObservers(autoPlay: autoPlay)
+        
+        URLSession.shared.dataTask(with: url) { [weak self] data, _, error in
+                  guard let self = self, let data = data, error == nil else {
+                      print("222Failed to download audio: \(url.absoluteString)")
+                      return
+                  }
+                  self.cacheManager.cacheAudioData(data, forKey: url.absoluteString)
+                  print("222Audio downloaded and cached: \(url.absoluteString)")
+              }.resume()
+          }
+    
+    private func setupPlayerObservers(autoPlay: Bool) {
         player?.publisher(for: \.status)
             .sink { [weak self] status in
                 guard let self = self else { return }
@@ -60,7 +100,7 @@ class PlayerViewModel: ObservableObject {
                     switch status {
                     case .readyToPlay:
                         self.isLoading = false
-                        self.duration = asset.duration.seconds
+                        self.duration = self.playerItem?.asset.duration.seconds ?? 0
                         if autoPlay {
                             self.play()
                         }
