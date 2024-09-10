@@ -4,6 +4,7 @@ struct PodcastDetailView: View {
     @ObservedObject var viewModel: PodcastDetailViewModel
     @StateObject private var playerViewModel: PlayerViewModel
     @State private var currentPage = 0
+    @State private var searchText = ""
     let episodesPerPage = 5
     
     init(viewModel: PodcastDetailViewModel) {
@@ -37,44 +38,87 @@ struct PodcastDetailView: View {
                         .foregroundColor(.secondary)
                 }
                 
+                HStack {
+                    TextField("Search episodes", text: $searchText)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .overlay(
+                            HStack {
+                                Spacer()
+                                if !searchText.isEmpty {
+                                    Button(action: {
+                                        searchText = ""
+                                    }) {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .foregroundColor(.gray)
+                                    }
+                                    .padding(.trailing, 8)
+                                }
+                            }
+                        )
+                    
+                    if !searchText.isEmpty {
+                        Button("Cancel") {
+                            searchText = ""
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        }
+                    }
+                }
+                .padding(.vertical)
+                
                 Text("Episodes")
                     .font(.title2)
                     .fontWeight(.bold)
+                
+                if filteredEpisodes.isEmpty {
+                    Text("No episodes found")
+                        .foregroundColor(.secondary)
+                        .padding()
+                } else {
+                    ForEach(paginatedFilteredEpisodes) { episode in
+                        NavigationLink(destination: PlayerView(viewModel: playerViewModel, episode: episode)) {
+                            EpisodeRow(episode: episode)
+                        }
+                    }
+                    
+                    HStack {
+                        if currentPage > 0 {
+                            Button("Previous") {
+                                currentPage -= 1
+                            }
+                        }
+                        Spacer()
+                        Text("Showing episodes \(currentPage * episodesPerPage + 1) to \(min((currentPage + 1) * episodesPerPage, filteredEpisodes.count)) of \(filteredEpisodes.count)")
+                            .font(.caption)
+                        Spacer()
+                        if (currentPage + 1) * episodesPerPage < filteredEpisodes.count {
+                            Button("Next") {
+                                currentPage += 1
+                            }
+                        }
+                    }
                     .padding(.top)
-                
-                ForEach(paginatedEpisodes) { episode in
-                    NavigationLink(destination: PlayerView(viewModel: playerViewModel, episode: episode)) {
-                        EpisodeRow(episode: episode)
-                    }
                 }
-                
-                HStack {
-                    if currentPage > 0 {
-                        Button("Previous") {
-                            currentPage -= 1
-                        }
-                    }
-                    Spacer()
-                    Text("Showing episodes \(currentPage * episodesPerPage + 1) to \(min((currentPage + 1) * episodesPerPage, viewModel.podcast.episodes.count))")
-                        .font(.caption)
-                    Spacer()
-                    if (currentPage + 1) * episodesPerPage < viewModel.podcast.episodes.count {
-                        Button("Next") {
-                            currentPage += 1
-                        }
-                    }
-                }
-                .padding(.top)
             }
             .padding()
         }
         .navigationBarTitle("Podcast Details", displayMode: .inline)
     }
     
-    private var paginatedEpisodes: [Episode] {
+    private var filteredEpisodes: [Episode] {
+        if searchText.isEmpty {
+            return viewModel.podcast.episodes
+        } else {
+            return viewModel.podcast.episodes.filter { episode in
+                episode.title.lowercased().contains(searchText.lowercased()) ||
+                episode.description.lowercased().contains(searchText.lowercased())
+            }
+        }
+    }
+    
+    private var paginatedFilteredEpisodes: [Episode] {
         let startIndex = currentPage * episodesPerPage
-        let endIndex = min(startIndex + episodesPerPage, viewModel.podcast.episodes.count)
-        return Array(viewModel.podcast.episodes[startIndex..<endIndex])
+        let endIndex = min(startIndex + episodesPerPage, filteredEpisodes.count)
+        return Array(filteredEpisodes[startIndex..<endIndex])
     }
 }
 
@@ -85,19 +129,15 @@ struct EpisodeRow: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(episode.title)
                 .font(.headline)
-                .lineLimit(2)
-                .fixedSize(horizontal: false, vertical: true)
             
             Text(episode.description)
                 .font(.subheadline)
-                .foregroundColor(.secondary)
-                .lineLimit(3)
-                .fixedSize(horizontal: false, vertical: true)
+                .lineLimit(2)
             
             HStack {
-                Text(formatDate(episode.publishDate))
+                Text("Published: \(formatDate(episode.publishDate))")
                 Spacer()
-                Text(formatDuration(episode.duration))
+                Text("Duration: \(formatDuration(episode.duration))")
             }
             .font(.caption)
             .foregroundColor(.secondary)
