@@ -19,6 +19,12 @@ extension DateFormatter {
     }()
 }
 
+extension String {
+    var stripHTMLTags: String {
+        return self.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression, range: nil)
+    }
+}
+
 class RSSParserDelegate: NSObject, XMLParserDelegate {
     var podcast: Podcast?
     private var currentElement = ""
@@ -84,12 +90,12 @@ class RSSParserDelegate: NSObject, XMLParserDelegate {
             if let episode = currentEpisode {
                 currentEpisode = Episode(id: episode.id,
                                          title: episode.title,
-                                         description: currentCharacters.trimmingCharacters(in: .whitespacesAndNewlines),
+                                         description: currentCharacters.trimmingCharacters(in: .whitespacesAndNewlines).stripHTMLTags,
                                          audioUrl: episode.audioUrl,
                                          duration: episode.duration,
                                          publishDate: episode.publishDate)
             } else {
-                podcastDescription = currentCharacters.trimmingCharacters(in: .whitespacesAndNewlines)
+                podcastDescription = currentCharacters.trimmingCharacters(in: .whitespacesAndNewlines).stripHTMLTags
             }
         case "itunes:image":
             if podcastImageUrl == nil, let url = URL(string: currentCharacters) {
