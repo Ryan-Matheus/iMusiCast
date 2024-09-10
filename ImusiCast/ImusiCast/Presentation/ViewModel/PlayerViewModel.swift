@@ -10,8 +10,9 @@ class PlayerViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var error: String?
     
-    private var player: AVAudioPlayer?
-    private var timer: Timer?
+    private var player: AVPlayer?
+    private var playerItem: AVPlayerItem?
+    private var timeObserver: Any?
     private var cancellables = Set<AnyCancellable>()
     
     var episodes: [Episode]
@@ -42,43 +43,40 @@ class PlayerViewModel: ObservableObject {
     }
     
     private func setupPlayer(autoPlay: Bool) {
-        cancellables.removeAll()
+        guard let url = URL(string: episode.audioUrl.absoluteString) else {
+            error = "Invalid URL"
+            isLoading = false
+            return
+        }
         
-        URLSession.shared.dataTaskPublisher(for: episode.audioUrl)
-            .map { $0.data }
-            .receive(on: DispatchQueue.main)
-            .sink(receiveCompletion: { [weak self] completion in
-                switch completion {
-                case .finished:
-                    break
-                case .failure(let error):
-                    self?.error = error.localizedDescription
-                    self?.isLoading = false
-                }
-            }, receiveValue: { [weak self] data in
+        let asset = AVAsset(url: url)
+        playerItem = AVPlayerItem(asset: asset)
+        player = AVPlayer(playerItem: playerItem)
+        
+        player?.publisher(for: \.status)
+            .sink { [weak self] status in
                 guard let self = self else { return }
-                do {
-                    self.player = try AVAudioPlayer(data: data)
-                    self.player?.prepareToPlay()
-                    self.duration = self.player?.duration ?? 0.01
-                    self.isLoading = false
-                    self.startTimer()
-                    if autoPlay {
-                        self.play()
+                DispatchQueue.main.async {
+                    switch status {
+                    case .readyToPlay:
+                        self.isLoading = false
+                        self.duration = asset.duration.seconds
+                        if autoPlay {
+                            self.play()
+                        }
+                    case .failed:
+                        self.error = "Failed to load audio"
+                        self.isLoading = false
+                    default:
+                        break
                     }
-                } catch {
-                    self.error = error.localizedDescription
-                    self.isLoading = false
                 }
-            })
+            }
             .store(in: &cancellables)
-    }
-    
-    private func startTimer() {
-        timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
-            guard let self = self, let player = self.player else { return }
-            self.currentTime = player.currentTime
+        
+        let interval = CMTime(seconds: 0.5, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
+        timeObserver = player?.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
+            self?.currentTime = time.seconds
         }
     }
     
@@ -101,14 +99,16 @@ class PlayerViewModel: ObservableObject {
     }
     
     func seek(to time: Double) {
-        player?.currentTime = time
+        player?.seek(to: CMTime(seconds: time, preferredTimescale: 1))
     }
     
     func stopPlayback() {
-        player?.stop()
-        timer?.invalidate()
-        timer = nil
+        player?.pause()
+        if let timeObserver = timeObserver {
+            player?.removeTimeObserver(timeObserver)
+        }
         player = nil
+        playerItem = nil
         isPlaying = false
         currentTime = 0
         cancellables.removeAll()
