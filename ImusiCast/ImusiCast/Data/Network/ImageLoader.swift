@@ -12,16 +12,19 @@ class ImageLoader: ObservableObject {
     }
     
     private func loadImage() {
-        if let cachedImage = cacheManager.getObject(forKey: url.absoluteString) as? UIImage {
+        let cacheKey = url.absoluteString
+        if let cachedImage = cacheManager.getObject(forKey: cacheKey) as? UIImage {
             self.image = cachedImage
             return
         }
         
         URLSession.shared.dataTask(with: url) { data, _, _ in
-            guard let data = data, let loadedImage = UIImage(data: data) else { return }
+            guard let data = data, let loadedImage = UIImage(data: data) else {
+                return
+            }
             DispatchQueue.main.async {
                 self.image = loadedImage
-                self.cacheManager.setObject(loadedImage, forKey: self.url.absoluteString)
+                self.cacheManager.setObject(loadedImage, forKey: cacheKey)
             }
         }.resume()
     }
