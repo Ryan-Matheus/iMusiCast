@@ -27,21 +27,23 @@ class PlayerViewModel: ObservableObject {
         stopPlayback()
     }
     
-    func changeEpisode(to newEpisode: Episode) {
+    func changeEpisode(to newEpisode: Episode, autoPlay: Bool = true) {
         stopPlayback()
         episode = newEpisode
         currentEpisodeIndex = episodes.firstIndex(where: { $0.id == newEpisode.id }) ?? 0
-        preparePlayback()
+        preparePlayback(autoPlay: autoPlay)
     }
     
-    func preparePlayback() {
+    func preparePlayback(autoPlay: Bool = false) {
         stopPlayback()
         isLoading = true
         error = nil
-        setupPlayer()
+        setupPlayer(autoPlay: autoPlay)
     }
     
-    private func setupPlayer() {
+    private func setupPlayer(autoPlay: Bool) {
+        cancellables.removeAll()
+        
         URLSession.shared.dataTaskPublisher(for: episode.audioUrl)
             .map { $0.data }
             .receive(on: DispatchQueue.main)
@@ -54,16 +56,19 @@ class PlayerViewModel: ObservableObject {
                     self?.isLoading = false
                 }
             }, receiveValue: { [weak self] data in
+                guard let self = self else { return }
                 do {
-                    self?.player = try AVAudioPlayer(data: data)
-                    self?.player?.prepareToPlay()
-                    self?.duration = self?.player?.duration ?? 0.01
-                    self?.isLoading = false
-                    self?.startTimer()
-                    self?.play()
+                    self.player = try AVAudioPlayer(data: data)
+                    self.player?.prepareToPlay()
+                    self.duration = self.player?.duration ?? 0.01
+                    self.isLoading = false
+                    self.startTimer()
+                    if autoPlay {
+                        self.play()
+                    }
                 } catch {
-                    self?.error = error.localizedDescription
-                    self?.isLoading = false
+                    self.error = error.localizedDescription
+                    self.isLoading = false
                 }
             })
             .store(in: &cancellables)
@@ -106,15 +111,16 @@ class PlayerViewModel: ObservableObject {
         player = nil
         isPlaying = false
         currentTime = 0
+        cancellables.removeAll()
     }
     
     func nextEpisode() {
         currentEpisodeIndex = (currentEpisodeIndex + 1) % episodes.count
-        changeEpisode(to: episodes[currentEpisodeIndex])
+        changeEpisode(to: episodes[currentEpisodeIndex], autoPlay: true)
     }
     
     func previousEpisode() {
         currentEpisodeIndex = (currentEpisodeIndex - 1 + episodes.count) % episodes.count
-        changeEpisode(to: episodes[currentEpisodeIndex])
+        changeEpisode(to: episodes[currentEpisodeIndex], autoPlay: true)
     }
 }

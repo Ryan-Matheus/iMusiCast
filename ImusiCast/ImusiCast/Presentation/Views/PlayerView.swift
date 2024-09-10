@@ -6,11 +6,6 @@ struct PlayerView: View {
     
     let episode: Episode
     
-    init(viewModel: PlayerViewModel, episode: Episode) {
-        self.viewModel = viewModel
-        self.episode = episode
-    }
-    
     var body: some View {
         VStack(spacing: 20) {
             Text(viewModel.episode.title)
@@ -22,7 +17,6 @@ struct PlayerView: View {
             ScrollView {
                 Text(viewModel.episode.description)
                     .font(.body)
-                    .multilineTextAlignment(.center)
                     .padding()
             }
             
@@ -47,9 +41,10 @@ struct PlayerView: View {
         })
         .onAppear {
             if viewModel.episode.id != episode.id {
-                viewModel.changeEpisode(to: episode)
+                viewModel.changeEpisode(to: episode, autoPlay: false)
+            } else if !viewModel.isPlaying {
+                viewModel.preparePlayback(autoPlay: false)
             }
-            viewModel.preparePlayback()
         }
         .onDisappear {
             viewModel.stopPlayback()
