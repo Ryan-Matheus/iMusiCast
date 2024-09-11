@@ -5,7 +5,7 @@ struct PodcastDetailView: View {
     @StateObject private var playerViewModel: PlayerViewModel
     @State private var currentPage = 0
     @State private var searchText = ""
-    let episodesPerPage = 5
+    let episodesPerPage = 6
     
     init(viewModel: PodcastDetailViewModel) {
         self.viewModel = viewModel
@@ -13,95 +13,131 @@ struct PodcastDetailView: View {
     }
     
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                Text(viewModel.podcast.title)
-                    .font(.title)
-                    .fontWeight(.bold)
-                
-                CachedAsyncImage(url: viewModel.podcast.imageUrl) {
-                    ProgressView()
-                }
-                .frame(height: 200)
-                .aspectRatio(contentMode: .fit)
-                
-                Text(viewModel.podcast.description)
-                    .font(.body)
-                    .padding(.vertical)
-                
-                Text("Author: \(viewModel.podcast.author)")
-                    .font(.subheadline)
-                
-                if !viewModel.podcast.genre.isEmpty {
-                    Text("Genre: \(viewModel.podcast.genre)")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-                
-                HStack {
-                    TextField("Search episodes", text: $searchText)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .overlay(
-                            HStack {
-                                Spacer()
-                                if !searchText.isEmpty {
-                                    Button(action: {
-                                        searchText = ""
-                                    }) {
-                                        Image(systemName: "xmark.circle.fill")
-                                            .foregroundColor(.gray)
-                                    }
-                                    .padding(.trailing, 8)
-                                }
-                            }
-                        )
+        ZStack {
+            LinearGradient(gradient: Gradient(colors: [Color.black, Color(#colorLiteral(red: 0.2, green: 0, blue: 0, alpha: 1))]), startPoint: .top, endPoint: .bottom)
+                .edgesIgnoringSafeArea(.all)
+            
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    Text(viewModel.podcast.title)
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
                     
-                    if !searchText.isEmpty {
-                        Button("Cancel") {
-                            searchText = ""
-                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                        }
+                    CachedAsyncImage(url: viewModel.podcast.imageUrl) {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .red))
                     }
-                }
-                .padding(.vertical)
-                
-                Text("Episodes")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                
-                if filteredEpisodes.isEmpty {
-                    Text("No episodes found")
-                        .foregroundColor(.secondary)
-                        .padding()
-                } else {
-                    ForEach(paginatedFilteredEpisodes) { episode in
-                        NavigationLink(destination: PlayerView(viewModel: playerViewModel, episode: episode)) {
-                            EpisodeRow(episode: episode)
-                        }
+                    .frame(height: 200)
+                    .aspectRatio(contentMode: .fit)
+                    .cornerRadius(15)
+                    .shadow(color: Color.red.opacity(0.3), radius: 10, x: 0, y: 5)
+                    
+                    Text(viewModel.podcast.description)
+                        .font(.body)
+                        .foregroundColor(.white.opacity(0.8))
+                        .padding(.vertical)
+                    
+                    infoRow(title: "Author", value: viewModel.podcast.author)
+                    
+                    if !viewModel.podcast.genre.isEmpty {
+                        infoRow(title: "Genre", value: viewModel.podcast.genre)
                     }
                     
-                    HStack {
-                        if currentPage > 0 {
-                            Button("Previous") {
-                                currentPage -= 1
-                            }
-                        }
-                        Spacer()
-                        Text("Showing episodes \(currentPage * episodesPerPage + 1) to \(min((currentPage + 1) * episodesPerPage, filteredEpisodes.count)) of \(filteredEpisodes.count)")
-                            .font(.caption)
-                        Spacer()
-                        if (currentPage + 1) * episodesPerPage < filteredEpisodes.count {
-                            Button("Next") {
-                                currentPage += 1
-                            }
-                        }
-                    }
-                    .padding(.top)
+                    searchBar
+                    
+                    Text("Episodes")
+                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                    
+                    episodesList
+                    
+                    paginationControls
                 }
+                .padding()
             }
-            .padding()
         }
         .navigationBarTitle("Podcast Details", displayMode: .inline)
+    }
+    
+    private func infoRow(title: String, value: String) -> some View {
+        HStack {
+            Text(title + ":")
+                .font(.subheadline)
+                .foregroundColor(.gray)
+            Text(value)
+                .font(.subheadline)
+                .foregroundColor(.white)
+        }
+    }
+    
+    private var searchBar: some View {
+        HStack {
+            TextField("Search episodes", text: $searchText)
+                .textFieldStyle(PlainTextFieldStyle())
+                .padding(10)
+                .background(Color.gray.opacity(0.2))
+                .cornerRadius(10)
+                .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.red.opacity(0.5), lineWidth: 1))
+                .foregroundColor(.white)
+            
+            if !searchText.isEmpty {
+                Button(action: {
+                    searchText = ""
+                }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.red.opacity(0.6))
+                }
+            }
+        }
+    }
+    
+    private var episodesList: some View {
+        Group {
+            if filteredEpisodes.isEmpty {
+                Text("No episodes found")
+                    .foregroundColor(.gray)
+                    .padding()
+            } else {
+                ForEach(paginatedFilteredEpisodes) { episode in
+                    NavigationLink(destination: PlayerView(viewModel: playerViewModel, episode: episode)) {
+                        EpisodeRow(episode: episode)
+                    }
+                }
+            }
+        }
+    }
+    
+    private var paginationControls: some View {
+        let totalPages = max(1, (filteredEpisodes.count + episodesPerPage - 1) / episodesPerPage)
+        
+        return HStack {
+            Button(action: {
+                withAnimation {
+                    currentPage = max(0, currentPage - 1)
+                }
+            }) {
+                Image(systemName: "chevron.left")
+                    .foregroundColor(currentPage > 0 ? .red : .gray)
+            }
+            .disabled(currentPage <= 0)
+            
+            Spacer()
+            Text("Episodes \(min(currentPage * episodesPerPage + 1, filteredEpisodes.count)) - \(min((currentPage + 1) * episodesPerPage, filteredEpisodes.count)) of \(filteredEpisodes.count)")
+                .font(.caption)
+                .foregroundColor(.gray)
+            Spacer()
+            
+            Button(action: {
+                withAnimation {
+                    currentPage = min(currentPage + 1, totalPages - 1)
+                }
+            }) {
+                Image(systemName: "chevron.right")
+                    .foregroundColor(currentPage < totalPages - 1 ? .red : .gray)
+            }
+            .disabled(currentPage >= totalPages - 1)
+        }
+        .padding(.top)
     }
     
     private var filteredEpisodes: [Episode] {
@@ -116,8 +152,16 @@ struct PodcastDetailView: View {
     }
     
     private var paginatedFilteredEpisodes: [Episode] {
-        let startIndex = currentPage * episodesPerPage
+        let totalPages = max(1, (filteredEpisodes.count + episodesPerPage - 1) / episodesPerPage)
+        let safePage = max(0, min(currentPage, totalPages - 1))
+        
+        let startIndex = safePage * episodesPerPage
         let endIndex = min(startIndex + episodesPerPage, filteredEpisodes.count)
+        
+        guard startIndex < filteredEpisodes.count else {
+            return []
+        }
+        
         return Array(filteredEpisodes[startIndex..<endIndex])
     }
 }
@@ -126,27 +170,25 @@ struct EpisodeRow: View {
     let episode: Episode
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 10) {
             Text(episode.title)
                 .font(.headline)
-            
-            Text(episode.description)
-                .font(.subheadline)
-                .lineLimit(2)
+                .foregroundColor(.white)
+                .lineLimit(3)
+                .multilineTextAlignment(.leading)
             
             HStack {
-                Text("Published: \(formatDate(episode.publishDate))")
+                Text(formatDate(episode.publishDate))
                 Spacer()
-                Text("Duration: \(formatDuration(episode.duration))")
+                Text(formatDuration(episode.duration))
             }
             .font(.caption)
-            .foregroundColor(.secondary)
+            .foregroundColor(.gray)
         }
-        .padding(.vertical, 8)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(.systemBackground))
-        .cornerRadius(8)
-        .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
+        .padding()
+        .frame(maxWidth: .infinity, minHeight: 130, maxHeight: 140)
+        .background(Color.gray.opacity(0.1))
+        .cornerRadius(10)
     }
     
     private func formatDate(_ date: Date) -> String {
