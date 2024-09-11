@@ -45,10 +45,8 @@ class PlayerViewModel: ObservableObject {
            
            let cacheKey = episode.audioUrl.absoluteString
            if let cachedData = cacheManager.getCachedAudioData(forKey: cacheKey) {
-               print("222Audio loaded from cache: \(cacheKey)")
                setupPlayerWithCachedData(cachedData, autoPlay: autoPlay)
            } else {
-               print("222Downloading audio: \(cacheKey)")
                setupPlayer(autoPlay: autoPlay)
            }
        }
@@ -64,7 +62,7 @@ class PlayerViewModel: ObservableObject {
             
             setupPlayerObservers(autoPlay: autoPlay)
         } catch {
-            self.error = "222Failed to load cached audio: \(error.localizedDescription)"
+            self.error = "Failed to load cached audio: \(error.localizedDescription)"
             isLoading = false
         }
     }
@@ -84,11 +82,9 @@ class PlayerViewModel: ObservableObject {
         
         URLSession.shared.dataTask(with: url) { [weak self] data, _, error in
                   guard let self = self, let data = data, error == nil else {
-                      print("222Failed to download audio: \(url.absoluteString)")
                       return
                   }
                   self.cacheManager.cacheAudioData(data, forKey: url.absoluteString)
-                  print("222Audio downloaded and cached: \(url.absoluteString)")
               }.resume()
           }
     
