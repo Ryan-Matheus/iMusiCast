@@ -1,9 +1,9 @@
 import Foundation
 
 class RSSParser {
-    private let cacheManager: CacheManager
+    private let cacheManager: CacheManagerProtocol
     
-    init(cacheManager: CacheManager = .shared) {
+    init(cacheManager: CacheManagerProtocol = CacheManager.shared) {
         self.cacheManager = cacheManager
     }
     

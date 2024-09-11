@@ -143,7 +143,7 @@ class RSSParserDelegate: NSObject, XMLParserDelegate {
         currentCharacters += string
     }
     
-    private func parseDurationString(_ durationString: String) -> TimeInterval? {
+    func parseDurationString(_ durationString: String) -> TimeInterval? {
         let components = durationString.components(separatedBy: ":")
         switch components.count {
         case 3:
