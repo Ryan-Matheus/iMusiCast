@@ -7,37 +7,51 @@ struct PlayerView: View {
     let episode: Episode
     
     var body: some View {
-        VStack(spacing: 20) {
-            Text(viewModel.episode.title)
-                .font(.title2)
-                .fontWeight(.bold)
-                .multilineTextAlignment(.center)
-                .padding()
+        ZStack(alignment: .bottom) {
+            LinearGradient(gradient: Gradient(colors: [Color.black, Color(#colorLiteral(red: 0.2, green: 0, blue: 0, alpha: 1))]), startPoint: .top, endPoint: .bottom)
+                .edgesIgnoringSafeArea(.all)
             
-            ScrollView {
-                Text(viewModel.episode.description)
-                    .font(.body)
+            VStack(spacing: 0) {
+                Text(viewModel.episode.title)
+                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+                    .multilineTextAlignment(.center)
                     .padding()
+                    .background(Color.black.opacity(0.7))
+                
+                ScrollView {
+                    VStack(spacing: 20) {
+                        Text(viewModel.episode.description)
+                            .font(.body)
+                            .foregroundColor(.white.opacity(0.8))
+                            .padding()
+                            .background(Color.gray.opacity(0.1))
+                            .cornerRadius(15)
+                        
+                        Spacer(minLength: 150)
+                    }
+                    .padding()
+                }
             }
             
-            if viewModel.isLoading {
-                ProgressView("Loading...")
-            } else if let error = viewModel.error {
-                Text("Error: \(error)")
-                    .foregroundColor(.red)
-            } else {
-                playerControls
-            }
+            playerControls
+                .padding()
+                .background(Color.black.opacity(0.7))
+                .cornerRadius(20)
+                .padding(.horizontal)
+                .padding(.bottom, 20)
         }
-        .padding()
         .navigationBarTitle("Now Playing", displayMode: .inline)
         .navigationBarBackButtonHidden(true)
         .navigationBarItems(leading: Button(action: {
             viewModel.stopPlayback()
             presentationMode.wrappedValue.dismiss()
         }) {
-            Image(systemName: "chevron.left")
-            Text("Back")
+            HStack {
+                Image(systemName: "chevron.left")
+                Text("Back")
+            }
+            .foregroundColor(.red)
         })
         .onAppear {
             if viewModel.episode.id != episode.id {
@@ -58,7 +72,7 @@ struct PlayerView: View {
                     viewModel.seek(to: viewModel.currentTime)
                 }
             }
-            .accentColor(.blue)
+            .accentColor(.red)
             
             HStack {
                 Text(formatTime(viewModel.currentTime))
@@ -66,6 +80,7 @@ struct PlayerView: View {
                 Text(formatTime(viewModel.duration))
             }
             .font(.caption)
+            .foregroundColor(.gray)
             
             HStack(spacing: 40) {
                 Button(action: viewModel.previousEpisode) {
@@ -83,7 +98,7 @@ struct PlayerView: View {
                         .font(.title)
                 }
             }
-            .foregroundColor(.blue)
+            .foregroundColor(.red)
         }
     }
     
