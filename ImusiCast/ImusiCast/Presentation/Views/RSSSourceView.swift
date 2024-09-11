@@ -12,7 +12,7 @@ struct RSSSourceView: View {
                 
                 ScrollView {
                     VStack(spacing: 25) {
-                        Text("RSS Source")
+                        Text("RSS Searcher")
                             .font(.system(size: 34, weight: .bold, design: .rounded))
                             .foregroundColor(.white)
                             .padding(.top, 30)
