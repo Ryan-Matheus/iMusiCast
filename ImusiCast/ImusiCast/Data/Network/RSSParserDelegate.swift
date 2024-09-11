@@ -1,15 +1,5 @@
 import Foundation
 
-extension String {
-    var xmlEscaped: String {
-        return self.replacingOccurrences(of: "&", with: "&amp;")
-            .replacingOccurrences(of: "<", with: "&lt;")
-            .replacingOccurrences(of: ">", with: "&gt;")
-            .replacingOccurrences(of: "'", with: "&apos;")
-            .replacingOccurrences(of: "\"", with: "&quot;")
-    }
-}
-
 extension DateFormatter {
     static let rfc2822: DateFormatter = {
         let formatter = DateFormatter()
