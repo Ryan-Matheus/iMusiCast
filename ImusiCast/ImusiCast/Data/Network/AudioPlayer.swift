@@ -13,7 +13,6 @@ class AudioPlayer: ObservableObject {
         player?.play()
         isPlaying = true
         
-        // Observe player status
         player?.addPeriodicTimeObserver(forInterval: CMTime(seconds: 1, preferredTimescale: 1), queue: .main) { [weak self] time in
             self?.currentTime = time.seconds
             self?.duration = playerItem.duration.seconds
