@@ -9,10 +9,10 @@ class RSSSourceViewModel: ObservableObject {
     @Published var urlHistory: [String] = []
     
     private let rssParser: RSSParser
-    private let cacheManager: CacheManager
+    private let cacheManager: CacheManagerProtocol
     private let historyManager: RSSURLHistoryManager
     
-    init(rssParser: RSSParser = RSSParser(), cacheManager: CacheManager = .shared, historyManager: RSSURLHistoryManager = RSSURLHistoryManager()) {
+    init(rssParser: RSSParser = RSSParser(), cacheManager: CacheManagerProtocol = CacheManager.shared, historyManager: RSSURLHistoryManager = RSSURLHistoryManager()) {
         self.rssParser = rssParser
         self.cacheManager = cacheManager
         self.historyManager = historyManager
@@ -57,7 +57,7 @@ class RSSSourceViewModel: ObservableObject {
         cacheStatus = "Cache cleared"
     }
     
-    private func loadURLHistory() {
+    func loadURLHistory() {
         urlHistory = historyManager.getHistory().urls
     }
 }
