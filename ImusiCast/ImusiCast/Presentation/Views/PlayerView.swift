@@ -102,7 +102,7 @@ struct PlayerView: View {
         }
     }
     
-    private func formatTime(_ time: Double) -> String {
+    func formatTime(_ time: Double) -> String {
         let totalSeconds = Int(max(0, time))
         let minutes = totalSeconds / 60
         let seconds = totalSeconds % 60
