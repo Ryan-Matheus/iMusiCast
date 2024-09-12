@@ -6,9 +6,6 @@ struct ContentView: View {
             NavigationStack {
                 RSSSourceView()
             }
-            .tabItem {
-                Label("Podcasts", systemImage: "mic")
-            }
         }
     }
 }
