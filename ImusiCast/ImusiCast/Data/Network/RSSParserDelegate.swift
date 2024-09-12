@@ -1,15 +1,5 @@
 import Foundation
 
-extension String {
-    var xmlEscaped: String {
-        return self.replacingOccurrences(of: "&", with: "&amp;")
-            .replacingOccurrences(of: "<", with: "&lt;")
-            .replacingOccurrences(of: ">", with: "&gt;")
-            .replacingOccurrences(of: "'", with: "&apos;")
-            .replacingOccurrences(of: "\"", with: "&quot;")
-    }
-}
-
 extension DateFormatter {
     static let rfc2822: DateFormatter = {
         let formatter = DateFormatter()
@@ -153,7 +143,7 @@ class RSSParserDelegate: NSObject, XMLParserDelegate {
         currentCharacters += string
     }
     
-    private func parseDurationString(_ durationString: String) -> TimeInterval? {
+    func parseDurationString(_ durationString: String) -> TimeInterval? {
         let components = durationString.components(separatedBy: ":")
         switch components.count {
         case 3:

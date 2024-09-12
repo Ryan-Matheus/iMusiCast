@@ -1,7 +1,7 @@
 import Foundation
 
 class RSSURLHistoryManager {
-    private let userDefaults = UserDefaults.standard
+    var userDefaults = UserDefaults.standard
     private let key = "RSSURLHistory"
     
     func saveURL(_ url: String) {
