@@ -8,9 +8,6 @@ Aplicação usando Xcode, SwiftUI, Combine, URLSession, NSCache, AVFoundation, X
    - [Tela Inicial](#tela-inicial)
    - [Detalhes do Podcast](#detalhes-do-podcast)
    - [Reprodutor de Áudio](#reprodutor-de-áudio)
-2. [Configuração do Ambiente](#configura%C3%A7%C3%A3o-do-ambiente)
-3. [Instalação do Projeto](#instala%C3%A7%C3%A3o-do-projeto)
-4. [Execução do Projeto](#execu%C3%A7%C3%A3o-do-projeto)
 
 
 ## Capturas de Tela
@@ -46,6 +43,5 @@ Terceira tela do aplicativo, onde o usuário pode ver o título e descrição do
 do atual epsódio e um player de audio contando com as funcionalidades de barra de progresso, play e pausa, próximo epsódio
 e epsódio anterior.
 
-## Configuração do Ambiente
 
 
